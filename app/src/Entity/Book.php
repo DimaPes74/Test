@@ -19,11 +19,15 @@ class Book
     #[Assert\NotBlank]
     private ?string $title = null;
 
+    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank]
+    private ?int $category = null;
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $author = null;
 
-    #[ORM\Column(length: 80, nullable: true)]
+    #[ORM\Column( nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -38,6 +42,16 @@ class Book
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getCategory(): ?string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?string $category): void
+    {
+        $this->category = $category;
     }
 
     public function getTitle(): ?string

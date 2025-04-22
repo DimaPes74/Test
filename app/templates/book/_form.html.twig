@@ -1,5 +1,154 @@
 {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-    {{ form_widget(form) }}
-    <button class="btn btn-secondary">{{ button_label|default('Save') }}</button>
-    <a href="{{ path('app_book_index') }}" class="btn btn-light">Back to list</a>
+    {{ form_row(form.title) }}
+    {{ form_row(form.author) }}
+
+    <div class="form-group">
+        {{ form_label(form.category) }}
+        <div class="input-group">
+            {{ form_widget(form.category, {'attr': {'class': 'form-control'}}) }}
+            <div class="input-group-append">
+                {# Кнопка редактирования #}
+                <button type="button" class="btn btn-outline-primary"
+                        id="editCategoryBtn"
+                        {{ not form.category.vars.value ? 'disabled' : '' }}>
+                    ✏️
+                </button>
+                {# Кнопка удаления #}
+                {% if form.category.vars.value %}
+                    <a href="{{ path('app_category_delete', {'id': form.category.vars.value}) }}"
+                       class="btn btn-outline-danger"
+                       onclick="return confirm('Вы уверены?')">
+                        🗑️
+                    </a>
+                {% else %}
+                    <button type="button" class="btn btn-outline-danger" disabled>
+                        🗑️
+                    </button>
+                {% endif %}
+                {# Кнопка добавления #}
+                <button type="button" class="btn btn-outline-success" id="addCategoryBtn">
+                    ➕
+                </button>
+            </div>
+        </div>
+        {{ form_errors(form.category) }}
+    </div>
+
+    {{ form_row(form.publishedAt) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.isbn) }}
+
+<button class="btn btn-secondary">{{ button_label|default('Save') }}</button>
+<a href="{{ path('app_book_index') }}" class="btn btn-light">Back to list</a>
 {{ form_end(form) }}
+
+{# Модальные окна #}
+<div class="modal" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить категорию</h5>
+                <button type="button" class="close" onclick="closeModal('addCategoryModal')">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="addCategoryFormContainer">
+                {{ render(controller('App\\Controller\\CategoryController::addForm')) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать категорию</h5>
+                <button type="button" class="close" onclick="closeModal('editCategoryModal')">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="editCategoryFormContainer">
+                {% if form.category.vars.value %}
+                    {{ render(controller('App\\Controller\\CategoryController::editForm', {'id': form.category.vars.value})) }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Стили для модальных окон #}
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+    }
+    .close {
+        float: right;
+        cursor: pointer;
+    }
+</style>
+
+{# Нативный JavaScript #}
+<script>
+    // Функции для работы с модальными окнами
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Запрещаем скролл страницы
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        document.body.style.overflow = 'auto'; // Возвращаем скролл
+    }
+
+    // Закрытие модального окна при клике вне его
+    window.onclick = function(event) {
+        document.querySelectorAll('.modal').forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+
+    // Обработчики кнопок
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.querySelector('select[name="book[category]"]');
+
+        // Кнопка добавления
+        document.getElementById('addCategoryBtn').addEventListener('click', function() {
+            openModal('addCategoryModal');
+        });
+
+        // Кнопка редактирования
+        document.getElementById('editCategoryBtn').addEventListener('click', function() {
+            if (categorySelect.value) {
+                openModal('editCategoryModal');
+            }
+        });
+
+        // Обновляем состояние кнопок при изменении выбора
+        if (categorySelect) {
+            categorySelect.addEventListener('change', function() {
+                const hasValue = this.value !== '';
+                document.getElementById('editCategoryBtn').disabled = !hasValue;
+                document.getElementById('deleteCategoryBtn').disabled = !hasValue;
+            });
+        }
+    });
+</script>
