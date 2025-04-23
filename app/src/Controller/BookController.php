@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Entity\Category;
 use App\Form\BookType;
 use App\Repository\BookRepository;
-use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,10 +16,15 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/book')]
 final class BookController extends AbstractController
 {
+    private BookRepository $bookRepository;
+
+    public function __construct(BookRepository $bookRepository) {
+        $this->bookRepository = $bookRepository;
+    }
     #[Route(name: 'app_book_index', methods: ['GET'])]
-    public function index(BookRepository $bookRepository, PaginatorInterface $paginator, Request $request): Response
+    public function index( PaginatorInterface $paginator, Request $request): Response
     {
-        $query = $bookRepository->createQueryBuilder('b')->getQuery();
+        $query = $this->bookRepository->createQueryBuilder('b')->getQuery();
 
         $pagination = $paginator->paginate(
             $query,
@@ -36,6 +41,8 @@ final class BookController extends AbstractController
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $book = new Book();
+        $category = $book->getCategory();
+        $isCategoryUsed = count($this->bookRepository->findBy(['category' => $book->getCategory()])) > 0;
         $form = $this->createForm(BookType::class, $book);
         $form->handleRequest($request);
 
@@ -48,15 +55,20 @@ final class BookController extends AbstractController
 
         return $this->render('book/new.html.twig', [
             'book' => $book,
-            'form' => $form,
+            'form' => $form->createView(),
+            'category' => $category,
+            'isCategoryUsed' => $isCategoryUsed
         ]);
     }
 
     #[Route('/{id}', name: 'app_book_show', methods: ['GET'])]
-    public function show(Book $book): Response
+    public function show(Category $category,): Response
     {
+        $isCategoryUsed = $this->bookRepository->count(['category' => $category]) > 0;
+
         return $this->render('book/show.html.twig', [
-            'book' => $book,
+            'category' => $category,
+            'isCategoryUsed' => $isCategoryUsed
         ]);
     }
 
@@ -66,6 +78,9 @@ final class BookController extends AbstractController
         $form = $this->createForm(BookType::class, $book);
         $form->handleRequest($request);
 
+        $isCategoryUsed = count($this->bookRepository->findBy(['category' => $book->getCategory()])) > 0;
+        $category = $book->getCategory();
+
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
 
@@ -74,7 +89,9 @@ final class BookController extends AbstractController
 
         return $this->render('book/edit.html.twig', [
             'book' => $book,
-            'form' => $form,
+            'form' => $form->createView(),
+            'isCategoryUsed' => $isCategoryUsed,
+            'category' => $category
         ]);
     }
 

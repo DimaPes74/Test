@@ -9,23 +9,23 @@
 
     <table class="table table-striped mt-3">
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>PublishedAt</th>
-                <th>Description</th>
-                <th>Isbn</th>
-                <th>actions</th>
-            </tr>
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Author</th>
+            <th>PublishedAt</th>
+            <th>Description</th>
+            <th>Isbn</th>
+            <th>actions</th>
+        </tr>
         </thead>
         <tbody>
         {% for book in pagination %}
             <tr>
                 <td>{{ book.id }}</td>
                 <td>{{ book.title }}</td>
-                <td>{{ book.category_id }}</td>
+                <td>{{ book.category ? book.category.name : 'No category' }}</td> {# выводим название категории или 'No category' #}
                 <td>{{ book.author }}</td>
                 <td>{{ book.publishedAt ? book.publishedAt|date('Y-m-d') : '' }}</td>
                 <td>{{ book.description }}</td>
@@ -37,7 +37,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="7">no records found</td>
+                <td colspan="8">no records found</td> {# исправил на 8, т.к. у вас 8 колонок в таблице #}
             </tr>
         {% endfor %}
         </tbody>

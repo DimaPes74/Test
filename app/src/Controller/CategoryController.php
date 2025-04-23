@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Book;
 use App\Entity\Category;
 use App\Form\CategoryType;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,18 +76,20 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/category/{id}/delete', name: 'app_category_delete')]
-    public function delete(Category $category, EntityManagerInterface $em): Response
+    public function delete(Category $category, Request $request, EntityManagerInterface $em): Response
     {
         $bookCount = $em->getRepository(Book::class)->count(['category' => $category]);
 
         if ($bookCount > 0) {
             $this->addFlash('error', 'Нельзя удалить категорию, так как с ней связаны книги');
         } else {
-            $em->remove($category);
-            $em->flush();
-            $this->addFlash('success', 'Категория удалена');
+            if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {
+                $em->remove($category);
+                $em->flush();
+                $this->addFlash('success', 'Категория удалена');
+            }
         }
 
-        return $this->redirectToRoute('app_book_new');
+        return $this->redirectToRoute('app_book_index');
     }
 }

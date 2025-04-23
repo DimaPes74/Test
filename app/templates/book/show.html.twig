@@ -14,30 +14,34 @@
 
     <table class="table">
         <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ book.id }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ book.title }}</td>
-            </tr>
-            <tr>
-                <th>Author</th>
-                <td>{{ book.author }}</td>
-            </tr>
-            <tr>
-                <th>PublishedAt</th>
-                <td>{{ book.publishedAt ? book.publishedAt|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ book.description }}</td>
-            </tr>
-            <tr>
-                <th>Isbn</th>
-                <td>{{ book.isbn }}</td>
-            </tr>
+        <tr>
+            <th>Id</th>
+            <td>{{ book.id }}</td>
+        </tr>
+        <tr>
+            <th>Title</th>
+            <td>{{ book.title }}</td>
+        </tr>
+        <tr>
+            <th>Category</th>
+            <td>{{ book.category ? book.category.name : 'No category' }}</td>
+        </tr>
+        <tr>
+            <th>Author</th>
+            <td>{{ book.author }}</td>
+        </tr>
+        <tr>
+            <th>PublishedAt</th>
+            <td>{{ book.publishedAt ? book.publishedAt|date('Y-m-d') : '' }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ book.description }}</td>
+        </tr>
+        <tr>
+            <th>Isbn</th>
+            <td>{{ book.isbn }}</td>
+        </tr>
         </tbody>
     </table>
 

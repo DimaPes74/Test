@@ -19,15 +19,16 @@ class Book
     #[Assert\NotBlank]
     private ?string $title = null;
 
-    #[ORM\Column(length: 100)]
+    #[ORM\ManyToOne(targetEntity: Category::class)]
+    #[ORM\JoinColumn(name: "category_id", referencedColumnName: "id", nullable: false)]
     #[Assert\NotBlank]
-    private ?int $category = null;
+    private ?Category $category = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private ?string $author = null;
 
-    #[ORM\Column( nullable: true)]
+    #[ORM\Column(nullable: true)]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -44,12 +45,12 @@ class Book
         return $this->id;
     }
 
-    public function getCategory(): ?string
+    public function getCategory(): ?Category
     {
         return $this->category;
     }
 
-    public function setCategory(?string $category): void
+    public function setCategory(?Category $category): void
     {
         $this->category = $category;
     }

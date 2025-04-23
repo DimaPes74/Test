@@ -3,12 +3,10 @@
 <button type="submit" class="btn btn-primary">
     {{ category is defined ? 'Обновить' : 'Создать' }}
 </button>
-<button type="button" class="btn btn-secondary" onclick="closeModal()">Отмена</button>
 {{ form_end(form) }}
-
 <script>
     function closeModal() {
-        const modal = this.closest('.modal');
+        const modal = document.querySelector('.addCategoryModal');
         if (modal) {
             modal.style.display = 'none';
             document.body.style.overflow = 'auto';
