@@ -6,90 +6,83 @@ use App\Entity\Book;
 use App\Entity\Category;
 use App\Form\CategoryType;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+#[Route('/category')]
 class CategoryController extends AbstractController
 {
-    #[Route('/category/add-form', name: 'app_category_add_form')]
-    public function addForm(): Response
+    // Отображение всех категорий
+    #[Route('/category_form', name: 'app_category_form')]
+    public function categoryList(EntityManagerInterface $entityManager): Response
     {
-        $category = new Category();
-        $form = $this->createForm(CategoryType::class, $category, [
-            'action' => $this->generateUrl('app_category_create')
-        ]);
+        $categories = $entityManager->getRepository(Category::class)->findAll();
 
-        return $this->render('Category/_form.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('Category/category_form.html.twig', [
+            'categories' => $categories,
         ]);
     }
 
-    #[Route('/category/create', name: 'app_category_create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em): Response
+    // Создание новой категории
+    #[Route('/category_create', name: 'app_category_create')]
+    public function createCategory(Request $request, EntityManagerInterface $entityManager): Response
     {
         $category = new Category();
+        $form = $this->createForm(CategoryType::class, $category);
+        $form->handleRequest($request);
+
         $category->setCreatedAt();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($category);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('app_category_form');
+        }
+
+        return $this->render('Category/_create.html.twig', [
+            'form_category' => $form->createView(),
+        ]);
+    }
+
+    // Редактирование категории
+    #[Route('/category_edit/{id}', name: 'app_category_edit_single')]
+    public function editCategory(Category $category, Request $request, EntityManagerInterface $entityManager): Response
+    {
         $form = $this->createForm(CategoryType::class, $category);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($category);
-            $em->flush();
-            $this->addFlash('success', 'Категория добавлена');
-            return $this->redirectToRoute('app_book_new');
+            $entityManager->flush();
+            return $this->redirectToRoute('app_category_form');
         }
 
-        $this->addFlash('error', 'Ошибка при добавлении категории');
-        return $this->redirectToRoute('app_book_new');
-    }
-
-    #[Route('/category/{id}/edit-form', name: 'app_category_edit_form')]
-    public function editForm(Category $category): Response
-    {
-        $form = $this->createForm(CategoryType::class, $category, [
-            'action' => $this->generateUrl('app_category_update', ['id' => $category->getId()])
-        ]);
-
-        return $this->render('Category/_form.html.twig', [
-            'form' => $form->createView(),
+        return $this->render('Category/_edit.html.twig', [
+            'form_category' => $form->createView(),
             'category' => $category,
-            'modal' => true
         ]);
     }
 
-    #[Route('/category/{id}/update', name: 'app_category_update', methods: ['POST'])]
-    public function update(Request $request, Category $category, EntityManagerInterface $em): Response
+    // Удаление категории
+    #[Route('/category_delete/{id}', name: 'app_category_delete')]
+    public function deleteCategory(Category $category, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createForm(CategoryType::class, $category);
-        $form->handleRequest($request);
+        $entityManager->remove($category);
+        $entityManager->flush();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em->flush();
-            $this->addFlash('success', 'Категория обновлена');
-            return $this->redirectToRoute('app_book_new');
-        }
-
-        $this->addFlash('error', 'Ошибка при обновлении категории');
-        return $this->redirectToRoute('app_book_new');
+        return $this->redirectToRoute('app_category_form');
     }
 
-    #[Route('/category/{id}/delete', name: 'app_category_delete')]
-    public function delete(Category $category, Request $request, EntityManagerInterface $em): Response
+    #[Route('/check-category-books/{id}', name: 'check_category_books', methods: ['GET'])]
+    public function checkCategoryBooks(Category $category, EntityManagerInterface $em): JsonResponse
     {
-        $bookCount = $em->getRepository(Book::class)->count(['category' => $category]);
+        // Проверяем, есть ли связанные книги
+        $bookCount = $em->getRepository(Book::class)->count(['category' => $category->getId()]);
 
-        if ($bookCount > 0) {
-            $this->addFlash('error', 'Нельзя удалить категорию, так как с ней связаны книги');
-        } else {
-            if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->request->get('_token'))) {
-                $em->remove($category);
-                $em->flush();
-                $this->addFlash('success', 'Категория удалена');
-            }
-        }
-
-        return $this->redirectToRoute('app_book_index');
+        return new JsonResponse([
+            'hasBooks' => $bookCount > 0
+        ]);
     }
 }

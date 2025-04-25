@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Category{% endblock %}
+
+{% block body %}
+    <h4>Edit Category: {{ category.name }}</h4>
+
+    {{ form_start(form_category) }}
+    {{ form_row(form_category.name) }}
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    {{ form_end(form_category) }}
+
+    <a href="{{ path('app_category_form') }}" class="btn btn-secondary mt-3">Back to Categories</a>
+{% endblock %}

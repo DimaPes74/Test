@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Book;
-use App\Entity\Category;
 use App\Form\BookType;
 use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,61 +36,55 @@ final class BookController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_book_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_book_new')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $book = new Book();
-        $category = $book->getCategory();
-        $isCategoryUsed = count($this->bookRepository->findBy(['category' => $book->getCategory()])) > 0;
         $form = $this->createForm(BookType::class, $book);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($book);
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_book_show', ['id' => $book->getId()], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_book_index');
         }
 
         return $this->render('book/new.html.twig', [
-            'book' => $book,
             'form' => $form->createView(),
-            'category' => $category,
-            'isCategoryUsed' => $isCategoryUsed
         ]);
     }
 
     #[Route('/{id}', name: 'app_book_show', methods: ['GET'])]
-    public function show(Category $category,): Response
+    public function show(Book $book): Response
     {
-        $isCategoryUsed = $this->bookRepository->count(['category' => $category]) > 0;
+        $category = $book->getCategory();
 
         return $this->render('book/show.html.twig', [
+            'book' => $book,
             'category' => $category,
-            'isCategoryUsed' => $isCategoryUsed
+            'isCategoryUsed' => $category && count($this->bookRepository->findBy(['category' => $category])) > 0
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'app_book_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Book $book, EntityManagerInterface $entityManager): Response
+    #[Route('/{id}/edit', name: 'app_book_edit')]
+    public function edit(Book $book, Request $request, EntityManagerInterface $entityManager): Response
     {
         $form = $this->createForm(BookType::class, $book);
         $form->handleRequest($request);
 
-        $isCategoryUsed = count($this->bookRepository->findBy(['category' => $book->getCategory()])) > 0;
-        $category = $book->getCategory();
+        $isCategoryUsed = $book->getCategory()->getId() > 0;
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_book_show', ['id' => $book->getId()], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_book_index');
         }
 
         return $this->render('book/edit.html.twig', [
             'book' => $book,
             'form' => $form->createView(),
-            'isCategoryUsed' => $isCategoryUsed,
-            'category' => $category
+            'category' => $book->getCategory(),
+            'categoryId' => $book->getCategory()->getId(),
+            'isCategoryUsed' => $isCategoryUsed
         ]);
     }
 

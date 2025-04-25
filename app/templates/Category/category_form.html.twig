@@ -1,0 +1,36 @@
+{# templates/category/category_form.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Categories{% endblock %}
+
+{% block body %}
+    <h4>All Categories</h4>
+
+    <a href="{{ path('app_category_create') }}" class="btn btn-primary mb-3">Create New Category</a>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Category Name</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ category.name }}</td>
+                <td>
+                    <a href="{{ path('app_category_edit_single', {'id': category.id}) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <a href="{{ path('app_category_delete', {'id': category.id}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">No categories found.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
