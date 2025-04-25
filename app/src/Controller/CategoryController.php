@@ -15,7 +15,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 #[Route('/category')]
 class CategoryController extends AbstractController
 {
-    // Отображение всех категорий
     #[Route('/category_form', name: 'app_category_form')]
     public function categoryList(EntityManagerInterface $entityManager): Response
     {
@@ -26,7 +25,6 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    // Создание новой категории
     #[Route('/category_create', name: 'app_category_create')]
     public function createCategory(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -47,7 +45,6 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    // Редактирование категории
     #[Route('/category_edit/{id}', name: 'app_category_edit_single')]
     public function editCategory(Category $category, Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -65,24 +62,16 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    // Удаление категории
     #[Route('/category_delete/{id}', name: 'app_category_delete')]
     public function deleteCategory(Category $category, EntityManagerInterface $entityManager): Response
     {
-        $entityManager->remove($category);
-        $entityManager->flush();
-
-        return $this->redirectToRoute('app_category_form');
-    }
-
-    #[Route('/check-category-books/{id}', name: 'check_category_books', methods: ['GET'])]
-    public function checkCategoryBooks(Category $category, EntityManagerInterface $em): JsonResponse
-    {
-        // Проверяем, есть ли связанные книги
-        $bookCount = $em->getRepository(Book::class)->count(['category' => $category->getId()]);
-
-        return new JsonResponse([
-            'hasBooks' => $bookCount > 0
-        ]);
+        try {
+            $entityManager->remove($category);
+            $entityManager->flush();
+            return $this->redirectToRoute('app_category_form');
+        } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $e) {
+            $this->addFlash('error', 'This category cannot be deleted because it is associated with one or more books.');
+            return $this->redirectToRoute('app_category_form');
+        }
     }
 }
