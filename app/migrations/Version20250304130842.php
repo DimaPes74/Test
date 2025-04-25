@@ -23,7 +23,7 @@ final class Version20250304130842 extends AbstractMigration
         $this->addSql('
         CREATE TABLE category (
             id INT AUTO_INCREMENT NOT NULL,
-            name VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL UNIQUE,
             created_at DATETIME NOT NULL COMMENT \'(DC2Type:datetime_immutable)\',
             updated_at DATETIME DEFAULT NULL COMMENT \'(DC2Type:datetime_immutable)\',
             PRIMARY KEY(id)

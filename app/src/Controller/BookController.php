@@ -91,7 +91,9 @@ final class BookController extends AbstractController
     #[Route('/{id}', name: 'app_book_delete', methods: ['POST'])]
     public function delete(Request $request, Book $book, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$book->getId(), $request->getPayload()->getString('_token'))) {
+        $token = $request->request->get('_token');
+
+        if ($this->isCsrfTokenValid('delete' . $book->getId(), $token)) {
             $entityManager->remove($book);
             $entityManager->flush();
         }
